@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block script %}
+<script>
+  $(document).ready(function() {
+    loadTweetContainer("tweet-container")
+  });
+</script>
+{% endblock script %}
+
+
+{% block content %}
+	<div class='row'>
+    <div class='col-sm-3 col-xs-12'>
+      <h1>{{ request.user }}</h1>
+      <hr/>
+      <br/>
+      <p class='lead'>Recommended Users</p>
+      {# recommended request.user #}
+    </div>
+
+    <div class='col-sm-9 '>
+      <div class=''>
+        {% include "posts/form.html" with form=create_form action_url=create_url btn_title='Blob' form_class='tweet-form' %}
+      </div>
+      <hr/>
+      <strong> <h3> Activity </h3> </strong>
+      <br/>
+      <div id='tweet-container' data-url='/api/post/'>
+      </div>
+      
+      <a href='#' id='loadmore'>Load More Tweets</a>
+    </div>
+  </div>
+{% endblock content %}
