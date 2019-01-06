@@ -26,6 +26,46 @@ def upload_location(instance, filename):
     """
     return "%s/%s" %(new_id, filename)
 
+
+# model manager
+
+class PostModelManager(models.Manager):
+    def retweet(self, user, parent_obj):
+        if parent_obj.parent:
+            og_parent = parent_obj.parent
+        else:
+            og_parent = parent_obj
+        
+        qs = self.get_queryset().filter(
+                user=user, parent=og_parent
+                ).filter(
+                    timestamp__year=timezone.now().year,
+                    timestamp__month=timezone.now().month,
+                    timestamp__day=timezone.now().day,
+                    reply=False,
+                )
+        if qs.exists():
+            return None
+
+        obj = self.model(
+                parent = og_parent,
+                user = user,
+                content = parent_obj.content,
+            )
+        obj.save()
+
+        return obj
+
+    def like_toggle(self, user, obj):
+        if user in obj.liked.all():
+            is_liked = False
+            obj.liked.remove(user)
+        else:
+            is_liked = True
+            obj.liked.add(user)
+        return is_liked
+
+
 class Post(models.Model):
 	parent      = models.ForeignKey("self", on_delete=models.CASCADE, blank=True, null=True)
 	user        = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -48,6 +88,8 @@ class Post(models.Model):
 	updated     = models.DateTimeField(auto_now=True)
 	timestamp   = models.DateTimeField(auto_now_add=True)
 	
+	objects = PostModelManager()
+
 	def __str__(self):
 		return str(self.content)
 
@@ -111,12 +153,6 @@ def post_save_receiver(sender, instance, created, *args, **kwargs):
         hashtags = re.findall(hash_regex, instance.content)
         #parsed_hashtags.send(sender=instance.__class__, hashtag_list=hashtags)
         # send hashtag signal to user here.
-
-
-
-
-
-
 
 
 post_save.connect(post_save_receiver, sender=Post)

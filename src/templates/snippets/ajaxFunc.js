@@ -11,7 +11,7 @@ function getParameterByName(name, url) {
     return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
 
-function loadTweetContainer(tweetContainerID, fetchOneId){
+function loadTweetContainer(tweetContainerID, fetchOneId) {
   var query = getParameterByName('q')
   var tweetList = [];
   var nextTweetUrl;
@@ -94,6 +94,31 @@ function loadTweetContainer(tweetContainerID, fetchOneId){
       }
     })
   })
+
+  $(document.body).on("click", ".image-check", function(e){
+
+    e.preventDefault()
+    console.log("image-check clicked")
+    var this_ = $(this)
+    var tweetId = this_.attr("data-id")
+    var checkUrl = '/api/imgutils/' + tweetId + "/check/"
+
+    $.ajax({
+      method: "GET",
+      url: checkUrl,
+      success: function (data) {
+        console.log(data)
+        if (data.similar > 1) {
+          alert("Duplicate Image")
+        }   
+      },
+      error: function(data){
+        console.log("error")
+        console.log(data)
+      }
+    })
+  })
+
   function updateHashLinks(){
     $(".content").each(function(data){
       var hashtagRegex = /(^|\s)#([\w\d-]+)/g
@@ -143,17 +168,20 @@ function loadTweetContainer(tweetContainerID, fetchOneId){
 
     tweetContent = "<span class='content'>" + tweetValue.content
     + "</span><br/> via <a href='" + tweetValue.user.url + "'>"
-    + tweetValue.user.username + "</a> | " + tweetValue.date_display
+        + tweetValue.user.username + "</a> | " + tweetValue.date_display
     + " | " + "<a href='/post/" + tweetValue.id + "'>View</a> | "
     + " | <a href='#' class='tweet-like' data-id='"
-    + tweetValue.id + "''>" + verb + " (" + tweetValue.likes
-    + ")</a>" + " | <a href='#' class='tweet-reply' data-user='" 
-    + tweetValue.user.username + "' data-id='" + replyId
-    + "''>Reply</a>"
+        + tweetValue.id + "''>" + verb + " (" + tweetValue.likes
+        + ")</a>"
+    + " | <a href='#' class='tweet-reply' data-user='" 
+        + tweetValue.user.username + "' data-id='" + replyId
+        + "''>Reply</a>"
     if (tweetValue.image_url != "") {
       tweetContent += 
                     ""//"| Image " + tweetValue.image_url
                     + "<img src=" + tweetValue.image_url + " class='img-responsive' />"
+                    + "<a href='#' class='image-check' data-id='" + tweetValue.id + "''>"
+                    + "Check</a>"
     }
 
     if (preContent) {
